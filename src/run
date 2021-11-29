@@ -1,0 +1,2 @@
+javac dev/j0eppp/pandemicsimulator/PandemicSimulator.java
+java dev.j0eppp.pandemicsimulator.PandemicSimulator
