@@ -18,7 +18,7 @@ public class PandemicSimulator {
     private int daysContagious;
 
     public static void main(String[] args) {
-        PandemicSimulator simulator = new PandemicSimulator(1000000, 0.1F, 30, 8);
+        PandemicSimulator simulator = new PandemicSimulator(1000000, 1F, 30, 8);
         simulator.startSimulation();
     }
 
@@ -34,31 +34,45 @@ public class PandemicSimulator {
     public void startSimulation() {
         Random random = new Random();
         for (int i = 0; i < amountOfPersons; i++) {
-//            float immunity = random.nextInt(100) < startingImmunity;
             float immunity = 0F;
             if (random.nextInt(100) < startingImmunity) {
                 immunity = 90F;
             }
-            float contagiousness = 0; // (float) random.nextGaussian()
+            float contagiousness = 0;
             boolean mask = false;
-            int amountOfFriends = (int) Math.abs(5 + random.nextGaussian() * 5);
+            int amountOfFriends = (int) Math.abs(10 + random.nextGaussian() * 5);
             Person person = new Person(i, immunity, contagiousness, mask, amountOfFriends);
             persons.add(person);
-//            System.out.print("Added person: ");
-//            System.out.println(i);
         }
 
-        setStartingInfectious(random);
+        setStartingContagiousness(random);
 
+        float[] immunity = new float[100];
+        int[] infections = new int[100];
         int totalInfections = 0;
-        for (int i = 1; i <= 100; i++) {
-            totalInfections += nextDay(random, i);
+
+        for (int i = 0; i < 100; i++) {
+            DailyResult result = nextDay(random, i);
+            int dailyInfections = (int) result.getInfections();
+            infections[i] = dailyInfections;
+            float dailyImmunity = (float) result.getImmunity();
+            immunity[i] = dailyImmunity;
+            totalInfections += dailyInfections;
         }
+
         System.out.println("-========================-");
         System.out.println("Total infections: " + totalInfections);
+
+        // Graphing things
+        SwingWorkerRealTime swingWorkerRealTimeInfections = new SwingWorkerRealTime();
+        swingWorkerRealTimeInfections.go(infections);
+
+        SwingWorkerRealTime swingWorkerRealTimeImmunity = new SwingWorkerRealTime();
+        swingWorkerRealTimeImmunity.go(immunity);
+
     }
 
-    public int nextDay(Random random, int day) {
+    public DailyResult nextDay(Random random, int day) {
         System.out.println("It is now day: " + day);
         int contagious = 0;
         float averageImmunity = 0;
@@ -86,12 +100,8 @@ public class PandemicSimulator {
                     Person friend = persons.get(random.nextInt(persons.size() - 1));
                     if (friend.getContagiousness() == 0 && friend.getImmunity() <= random.nextFloat() * 100 && random.nextInt(100) < p.getContagiousness()) {
                         // Infected a friend
-                        setInfectiousness(random, friend);
+                        setContagiousness(random, friend);
                         infectedToday++;
-//                        System.out.print("Person ");
-//                        System.out.print(p.getIdentifier());
-//                        System.out.print(" infected person ");
-//                        System.out.println(friend.getIdentifier());
                     }
                 }
             }
@@ -104,9 +114,6 @@ public class PandemicSimulator {
                     p.setImmunity(70F);
                     p.setContagiousness(0);
                     p.setContagiousDays(0);
-//                    System.out.print("Person ");
-//                    System.out.print(p.getIdentifier());
-//                    System.out.println(" has been healed and is now immune!");
                 }
             }
             if (p.getContagiousness() > 0) {
@@ -117,33 +124,28 @@ public class PandemicSimulator {
         System.out.println("Immunity: " + averageImmunity / persons.size());
         System.out.println("People contagious: " + contagious);
         System.out.println("-====================-");
-        return infectedToday;
+        return new DailyResult(infectedToday, averageImmunity / persons.size());
     }
 
-    private void setStartingInfectious(Random random) {
+    private void setStartingContagiousness(Random random) {
         ArrayList<Integer> personsInfectious = new ArrayList<>();
         for (int i = 0; i < startingInfectious; i++) {
             int index = random.nextInt(persons.size() - 1);
             while (personsInfectious.contains(index)) {
                 index = random.nextInt(persons.size() - 1);
             }
-            setInfectiousness(random, index);
+            setContagiousness(random, index);
             personsInfectious.add(index);
         }
 
     }
 
-    private void setInfectiousness(Random random, int index) {
+    private void setContagiousness(Random random, int index) {
         Person person = persons.get(index);
-//        person.setContagiousness((float) Math.abs(random.nextGaussian() * 10));
-//        System.out.print("Contagiousness: ");
-//        System.out.println(person.getContagiousness());
-        setInfectiousness(random, person);
+        setContagiousness(random, person);
     }
 
-    private void setInfectiousness(Random random, Person person) {
+    private void setContagiousness(Random random, Person person) {
         person.setContagiousness((float) Math.abs(random.nextGaussian() * 10));
-//        System.out.print("Contagiousness: ");
-//        System.out.println(person.getContagiousness());
     }
 }
