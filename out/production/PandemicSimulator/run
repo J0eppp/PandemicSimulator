@@ -1,4 +1,0 @@
-javac dev/j0eppp/pandemicsimulator/PandemicSimulator.java -d ../out/production/PandemicSimulator/
-cd ../out/production/PandemicSimulator/
-java dev.j0eppp.pandemicsimulator.PandemicSimulator
-
