@@ -1,12 +1,7 @@
 package dev.j0eppp.pandemicsimulator;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import javax.swing.SwingWorker;
 
-import dev.j0eppp.pandemicsimulator.Person;
 import org.knowm.xchart.QuickChart;
 import org.knowm.xchart.SwingWrapper;
 import org.knowm.xchart.XYChart;
@@ -46,7 +41,7 @@ public class SwingWorkerRealTime {
         mySwingWorker.execute();
     }
 
-    public void go(float[] immunity) {
+    public void go(double[] immunity) {
         // Create Chart
         double[] array = new double[immunity.length];
         double[] yarray = new double[immunity.length];
@@ -71,7 +66,7 @@ public class SwingWorkerRealTime {
 //        LinkedList<Float> fifo = new LinkedList<>();
 //        ArrayList<Person> persons;
         int[] infections;
-        float[] immunity;
+        double[] immunity;
 
         public MySwingWorker(int[] infections) {
 //            this.persons = persons;
@@ -80,7 +75,7 @@ public class SwingWorkerRealTime {
             this.infections = infections;
         }
 
-        public MySwingWorker(float[] immunity) {
+        public MySwingWorker(double[] immunity) {
             this.immunity = immunity;
         }
 

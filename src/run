@@ -1,4 +1,3 @@
-javac dev/j0eppp/pandemicsimulator/PandemicSimulator.java -d ../out/production/PandemicSimulator/
+javac -d ../out/production/PandemicSimulator/ -cp ~/PandemicSimulator/out/production/PandemicSimulator:~/PandemicSimulator/lib/xchart-3.8.1.jar dev/j0eppp/pandemicsimulator/PandemicSimulator.java -Xlint:unchecked
 cd ../out/production/PandemicSimulator/
-java dev.j0eppp.pandemicsimulator.PandemicSimulator
-
+java -cp .:../../../lib/xchart-3.8.1.jar dev.j0eppp.pandemicsimulator.PandemicSimulator $@

@@ -11,23 +11,60 @@ import java.util.Random;
 
 public class PandemicSimulator {
 
-    private ArrayList<Person> persons;
-    private int amountOfPersons;
-    private float startingImmunity;
-    private int startingInfectious;
-    private int daysContagious;
+    private final ArrayList<Person> persons;
+    private final int amountOfPersons;
+    private final float startingImmunity;
+    private final int startingInfectious;
+    private final int daysContagious;
+    private final int amountOfDays;
+
+    private static int parseInt(String arg) {
+        try {
+            return Integer.parseInt(arg);
+        } catch (NumberFormatException e) {
+            System.err.println("Argument " + arg + " must be an integer");
+            System.exit(1);
+        }
+        return 0;
+    }
+
+    private static float parseFloat(String arg) {
+        try {
+            return Float.parseFloat(arg);
+        } catch (NumberFormatException e) {
+            System.err.println("Argument " + arg + " must be a float");
+            System.exit(1);
+        }
+        return 0F;
+    }
 
     public static void main(String[] args) {
-        PandemicSimulator simulator = new PandemicSimulator(1000000, 1F, 30, 8);
+        // Parse args
+        if (args.length < 5) {
+            System.err.println("Please provide all the arguments required");
+            System.exit(1);
+        }
+        // First argument is the amount of persons
+        int amountOfPersons = parseInt(args[0]);
+        // Second argument is the starting immunity
+        float startingImmunity = parseFloat(args[1]);
+        // Third argument is how many people are contagious at the start
+        int startingContagious = parseInt(args[2]);
+        // Fourth argument is how many days someone is contagious
+        int daysContagious = parseInt(args[3]);
+        // Fifth argument is how many days the simulator should simulate
+        int amountOfDays = parseInt(args[4]);
+        PandemicSimulator simulator = new PandemicSimulator(amountOfPersons, startingImmunity, startingContagious, daysContagious, amountOfDays);
         simulator.startSimulation();
     }
 
-    public PandemicSimulator(int amountOfPersons, float startingImmunity, int startingInfectious, int daysContagious) {
+    public PandemicSimulator(int amountOfPersons, float startingImmunity, int startingInfectious, int daysContagious, int amountOfDays) {
         this.persons = new ArrayList<>();
         this.amountOfPersons = amountOfPersons;
         this.startingImmunity = startingImmunity;
         this.startingInfectious = startingInfectious;
         this.daysContagious = daysContagious;
+        this.amountOfDays = amountOfDays;
         System.out.println("Running PandemicSimulator");
     }
 
@@ -47,16 +84,16 @@ public class PandemicSimulator {
 
         setStartingContagiousness(random);
 
-        float[] immunity = new float[100];
-        int[] infections = new int[100];
+        ArrayList<Float> immunity = new ArrayList<>();
+        ArrayList<Integer> infections = new ArrayList<>();
         int totalInfections = 0;
 
-        for (int i = 0; i < 100; i++) {
-            DailyResult result = nextDay(random, i);
-            int dailyInfections = (int) result.getInfections();
-            infections[i] = dailyInfections;
-            float dailyImmunity = (float) result.getImmunity();
-            immunity[i] = dailyImmunity;
+        for (int i = 0; i < amountOfDays; i++) {
+            DailyResult<Integer, Float> result = nextDay(random, i);
+            int dailyInfections = result.getInfections();
+            infections.add(dailyInfections);
+            float dailyImmunity = result.getImmunity();
+            immunity.add(dailyImmunity);
             totalInfections += dailyInfections;
         }
 
@@ -65,14 +102,14 @@ public class PandemicSimulator {
 
         // Graphing things
         SwingWorkerRealTime swingWorkerRealTimeInfections = new SwingWorkerRealTime();
-        swingWorkerRealTimeInfections.go(infections);
+        swingWorkerRealTimeInfections.go(infections.stream().mapToInt(i -> i).toArray());
 
         SwingWorkerRealTime swingWorkerRealTimeImmunity = new SwingWorkerRealTime();
-        swingWorkerRealTimeImmunity.go(immunity);
+        swingWorkerRealTimeImmunity.go(immunity.stream().mapToDouble(i -> i).toArray());
 
     }
 
-    public DailyResult nextDay(Random random, int day) {
+    public DailyResult<Integer, Float> nextDay(Random random, int day) {
         System.out.println("It is now day: " + day);
         int contagious = 0;
         float averageImmunity = 0;
@@ -111,7 +148,8 @@ public class PandemicSimulator {
             if (p.getContagiousness() > 0) {
                 p.setContagiousDays(p.getContagiousDays() + 1);
                 if (p.getContagiousDays() > daysContagious) {
-                    p.setImmunity(70F);
+                    // Healed
+                    p.setImmunity(80F);
                     p.setContagiousness(0);
                     p.setContagiousDays(0);
                 }
@@ -124,10 +162,13 @@ public class PandemicSimulator {
         System.out.println("Immunity: " + averageImmunity / persons.size());
         System.out.println("People contagious: " + contagious);
         System.out.println("-====================-");
-        return new DailyResult(infectedToday, averageImmunity / persons.size());
+        return new DailyResult<>(infectedToday, averageImmunity / persons.size());
     }
 
     private void setStartingContagiousness(Random random) {
+        // This is very inefficient
+        // With a lot of contagious people at the start it's really slow to start
+        // TODO make this more efficient
         ArrayList<Integer> personsInfectious = new ArrayList<>();
         for (int i = 0; i < startingInfectious; i++) {
             int index = random.nextInt(persons.size() - 1);
