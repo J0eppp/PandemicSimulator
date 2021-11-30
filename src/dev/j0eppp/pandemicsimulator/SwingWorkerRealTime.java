@@ -15,14 +15,8 @@ public class SwingWorkerRealTime {
     SwingWrapper<XYChart> sw;
     XYChart chart;
 
-//    public static void main(String[] args) throws Exception {
-//
-//        SwingWorkerRealTime swingWorkerRealTime = new SwingWorkerRealTime();
-//        swingWorkerRealTime.go();
-//    }
-
     public void go(int[] infections) {
-// Create Chart
+        // Create Chart
         double[] array = new double[infections.length];
         double[] yarray = new double[infections.length];
         for (int i = 0; i < infections.length; i++) {

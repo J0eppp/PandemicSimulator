@@ -92,9 +92,9 @@ public class PandemicSimulator {
             DailyResult<Integer, Float> result = nextDay(random, i);
             int dailyInfections = result.getInfections();
             infections.add(dailyInfections);
+            totalInfections += dailyInfections;
             float dailyImmunity = result.getImmunity();
             immunity.add(dailyImmunity);
-            totalInfections += dailyInfections;
         }
 
         System.out.println("-========================-");
@@ -106,7 +106,6 @@ public class PandemicSimulator {
 
         SwingWorkerRealTime swingWorkerRealTimeImmunity = new SwingWorkerRealTime();
         swingWorkerRealTimeImmunity.go(immunity.stream().mapToDouble(i -> i).toArray());
-
     }
 
     public DailyResult<Integer, Float> nextDay(Random random, int day) {
@@ -116,6 +115,7 @@ public class PandemicSimulator {
 
         // Simulate the spread of infection
         int infectedToday = 0;
+        ArrayList<Integer> personsInfected = new ArrayList<>();
         for (Person p : persons) {
             // Immunity decreases over time
             // Testing with 0.5% a day
@@ -149,7 +149,7 @@ public class PandemicSimulator {
                 p.setContagiousDays(p.getContagiousDays() + 1);
                 if (p.getContagiousDays() > daysContagious) {
                     // Healed
-                    p.setImmunity(80F);
+                    p.setImmunity(100F);
                     p.setContagiousness(0);
                     p.setContagiousDays(0);
                 }
@@ -169,16 +169,23 @@ public class PandemicSimulator {
         // This is very inefficient
         // With a lot of contagious people at the start it's really slow to start
         // TODO make this more efficient
-        ArrayList<Integer> personsInfectious = new ArrayList<>();
-        for (int i = 0; i < startingInfectious; i++) {
-            int index = random.nextInt(persons.size() - 1);
-            while (personsInfectious.contains(index)) {
-                index = random.nextInt(persons.size() - 1);
-            }
-            setContagiousness(random, index);
-            personsInfectious.add(index);
+        // Maybe just take the [0, startingInfectious] range and make them contagious
+        if (persons.size() < startingInfectious) {
+            System.err.println("You cannot have more infectious persons than persons in total");
+            System.exit(1);
         }
-
+        for (int i = 0; i < startingInfectious; i++) {
+            setContagiousness(random, i);
+        }
+//        ArrayList<Integer> personsInfectious = new ArrayList<>();
+//        for (int i = 0; i < startingInfectious; i++) {
+//            int index = random.nextInt(persons.size() - 1);
+//            while (personsInfectious.contains(index)) {
+//                index = random.nextInt(persons.size() - 1);
+//            }
+//            setContagiousness(random, index);
+//            personsInfectious.add(index);
+//        }
     }
 
     private void setContagiousness(Random random, int index) {
